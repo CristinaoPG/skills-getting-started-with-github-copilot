@@ -94,10 +94,13 @@ def signup_for_activity(activity_name: str, email: str):
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
 
+    # Normalize email to avoid duplicates due to casing/spaces
+    normalized_email = email.strip().lower()
+
     activity = activities[activity_name]
 
     # Check if already signed up
-    if email in activity["participants"]:
+    if normalized_email in [e.strip().lower() for e in activity["participants"]]:
         raise HTTPException(status_code=400, detail="Student already signed up for this activity")
 
     # Check if activity is full
@@ -105,8 +108,8 @@ def signup_for_activity(activity_name: str, email: str):
         raise HTTPException(status_code=400, detail="Activity is full")
 
     # Add student
-    activity["participants"].append(email)
-    return {"message": f"Signed up {email} for {activity_name}"}
+    activity["participants"].append(normalized_email)
+    return {"message": f"Signed up {normalized_email} for {activity_name}"}
 
 
 @app.delete("/activities/{activity_name}/participants")
